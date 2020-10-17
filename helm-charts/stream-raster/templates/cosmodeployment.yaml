@@ -1,0 +1,86 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cosmo
+spec:
+  replicas: {{ .Values.cosmoReplicas}}
+  template:
+    metadata:
+      labels:
+        app: cosmo
+    spec:
+      volumes:
+      - name: {{ .Values.my-secrets-volume}}
+        secret:
+          secretName: {{ .Values.cloudsql-instance-credentials}}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - cosmo
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: cloudsql-proxy
+        image: {{ .Values.cosmoCloudsqlProxyImage}}
+        command: ["/cloud_sql_proxy", "-instances={{ .Values.cosmoCloudsqlInstance}}=tcp:5432",
+          "-credential_file=/secrets/cloudsql/credentials.json"]
+        securityContext:
+          runAsUser: 2  # non-root user
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: {{ .Values.cloudsqlProxyVolumeName}}
+          mountPath: /secrets/cloudsql
+          readOnly: true
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "100m"
+          limits:
+            memory: "500Mi"
+            cpu: "150m"
+      - name: cosmo
+        image: {{ .Values.cosmoApiImage}}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: "127.0.0.1"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: password
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: dbname
+        - name: DB_LOGGING
+          value: "debug"
+        - name: NODE_LOG_LEVEL
+          value: "debug"
+        - name: NODE_PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          value: "debug"
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m"
+          limits:
+            memory: "150Mi"
+            cpu: "200m"

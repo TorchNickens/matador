@@ -1,0 +1,27 @@
+# Default values for stream-raster.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+projectId: defaultProjectId
+
+# BIFROST DEPLOYMENT VALUES
+bifrostReplicas: 6
+espImage: gcr.io/endpoints-release/endpoints-runtime:1.39
+bifrostHostValue: testing.raster.stream.woolpert.io 
+bifrostImage: gcr.io/woolpert-cloud-ops/bifrost-api:0.9.10
+#BIFROST INGRESS
+managedCertificateName: stream-raster-api
+gloabalStaticIpName: stream-raster-api
+
+#COSMO DEPLOYMENT
+cosmoReplicas: 3
+cosmoVolumeName: my-secrets-volume
+cosmoSecretname: cloudsql-instance-credentials
+cosmoCloudsqlProxyImage: gcr.io/cloudsql-docker/gce-proxy:1.14
+cosmoCloudsqlInstance: projectID:us-central1:cosmo
+cloudsqlProxyVolumeName: my-secrets-volume
+cosmoApiImage: gcr.io/woolpert-cloud-ops/cosmo-api:0.4.3
+
+#COSMO INTERNAL LOADBALANCER
+loadBalancerSourceRanges: 10.20.20.0/26
+
+#OPEN_API

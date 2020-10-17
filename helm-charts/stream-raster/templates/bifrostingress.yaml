@@ -1,0 +1,11 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: esp-bifrost
+  annotations:
+    networking.gke.io/managed-certificates: {{ .Values.managedCertificateName}}
+    kubernetes.io/ingress.global-static-ip-name: {{ .Values.globalStaticIpName}}
+spec:
+  backend:
+    serviceName: esp-bifrost
+    servicePort: 80

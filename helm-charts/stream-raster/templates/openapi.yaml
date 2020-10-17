@@ -1,0 +1,81 @@
+swagger: "2.0"
+info:
+  title: "Woolpert STREAM RASTER API"
+  description: "API for raster tiles accessible as OGC WMTS and XYZ tiles."
+  version: "1.0.0"
+host: "{{ .Values.bifrostHostValue}}"
+
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "key"
+    in: "query"
+
+
+paths:
+  "/":
+    get:
+      operationId: healthCheck
+      description: Heath Check
+      responses:
+        "200":
+          description: OK
+  "/layers/{layer-id}/tiles/{level}/{col}/{row}":
+    get:
+      operationId: xyzGetTile
+      description: Returns a tile
+      parameters:
+        - name: layer-id
+          in: path
+          description: Layer ID
+          required: true
+          type: string
+        - name: level
+          in: path
+          description: Pyramid Level
+          required: true
+          type: integer
+        - name: col
+          in: path
+          description: Tile column
+          required: true
+          type: integer
+        - name: row
+          in: path
+          description: Tile row
+          required: true
+          type: integer
+      security:
+        - api_key: []
+      produces:
+        - image/*
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Not authorized to access layer or missing X-Endpoint-Api-Project-Id header
+        "204":
+          description: Layer or tile does not exist
+  "/ogc/wmts/1.0.0/WMTSCapabilities.xml":
+    get:
+      operationId: wmts100capabilities
+      description: WMTS v1.0.0 Get Capabilities
+      security:
+        - api_key: []
+      produces:
+        - application/xml
+      responses:
+        "200":
+          description: OK
+  "/ogc/wmts/1.0.0/capabilities":
+    get:
+      operationId: wmts100capabilitiesSimple
+      description: WMTS v1.0.0 Get Capabilities
+      security:
+        - api_key: []
+      produces:
+        - application/xml
+      responses:
+        "200":
+          description: OK
+
